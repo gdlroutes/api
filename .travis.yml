@@ -1,0 +1,9 @@
+dist: xenial
+language: go
+go:
+  - 1.11.x
+
+branches:
+  only:
+    - develop
+    - master
