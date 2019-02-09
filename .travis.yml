@@ -1,0 +1,11 @@
+dist: xenial
+language: go
+go:
+  - 1.11.x
+
+script: echo "Built!"
+
+branches:
+  only:
+    - develop
+    - master
