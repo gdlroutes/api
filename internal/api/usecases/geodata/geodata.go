@@ -1,22 +1,36 @@
 package geodata
 
-import "github.com/gdlroutes/api/internal/api/models"
+import (
+	"errors"
 
-type useCases struct{}
+	"github.com/gdlroutes/api/internal/api/models"
+)
+
+type useCases struct {
+	storage Storage
+}
 
 var _ UseCases = &useCases{}
 
-// New creates a default set of GeoData use cases
-func New() (UseCases, error) {
-	return &useCases{}, nil
+// New creates a default set of geodata use cases
+func New(storage Storage) (UseCases, error) {
+	if storage == nil {
+		return nil, errors.New("nil storage")
+	}
+
+	return &useCases{storage: storage}, nil
 }
 
-// TODO: implement
 func (u *useCases) GetCategories() ([]*models.Category, error) {
-	return nil, nil
+	return u.storage.GetCategories()
 }
 
-// TODO: implement
-func (u *useCases) GetCategoryByID(categoryID int) ([]*models.Category, error) {
-	return nil, nil
+func (u *useCases) GetCategoryByID(categoryID int) (*models.Category, error) {
+	if categoryExists, err := u.storage.DoesCategoryExist(categoryID); err != nil {
+		return nil, err
+	} else if !categoryExists {
+		return nil, models.NotFoundError("")
+	}
+
+	return u.storage.GetCategoryByID(categoryID)
 }
