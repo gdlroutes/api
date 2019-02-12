@@ -8,12 +8,17 @@ import (
 	controllers "github.com/gdlroutes/api/internal/api/controllers/geodata"
 	"github.com/gdlroutes/api/internal/api/routers"
 	usecases "github.com/gdlroutes/api/internal/api/usecases/geodata"
+	"github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
 )
 
 const port = 8080
 
 func main() {
-	useCases, err := usecases.New()
+	storage, err := storage.NewFake()
+	if err != nil {
+		log.Fatalf("error creating geodata storage: %v", err)
+	}
+	useCases, err := usecases.New(storage)
 	if err != nil {
 		log.Fatalf("error creating geodata usecases: %v", err)
 	}
