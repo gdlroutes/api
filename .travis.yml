@@ -3,8 +3,11 @@ language: go
 go:
   - 1.11.x
 
+install:
+  - dep ensure
+
 script:
-  - go test ./...
+  - go build cmd/api/main.go
 
 branches:
   only:
