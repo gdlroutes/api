@@ -32,3 +32,9 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root-package = "github.com/gdlroutes/api"
+  go-version = "1.11"
+  install = [ "./cmd/..." ]
+  ensure = true
