@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	controllers "github.com/gdlroutes/api/internal/api/controllers/geodata"
 	"github.com/gdlroutes/api/internal/api/routers"
 	usecases "github.com/gdlroutes/api/internal/api/usecases/geodata"
 	"github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
+)
+
+const (
+	portEnvName = "PORT"
+	defaultPort = "8080"
 )
 
 func cors(h http.Handler) http.Handler {
@@ -20,9 +26,12 @@ func cors(h http.Handler) http.Handler {
 	})
 }
 
-const port = 8080
-
 func main() {
+	port := os.Getenv(portEnvName)
+	if port == "" {
+		port = defaultPort
+	}
+
 	storage, err := storage.NewFake()
 	if err != nil {
 		log.Fatalf("error creating geodata storage: %v", err)
@@ -40,8 +49,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(routers.GeodataPrefix, router)
 
-	server := cors(mux)
-
-	log.Printf("Listening on %d...\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
+	log.Printf("Listening on %s...\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
 }
