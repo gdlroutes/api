@@ -11,6 +11,15 @@ import (
 	"github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
 )
 
+func cors(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		h.ServeHTTP(w, r)
+	})
+}
+
 const port = 8080
 
 func main() {
@@ -31,6 +40,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(routers.GeodataPrefix, router)
 
+	server := cors(mux)
+
 	log.Printf("Listening on %d...\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
 }

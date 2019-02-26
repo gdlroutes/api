@@ -2,10 +2,11 @@ package models
 
 // Hotspot is a hotspot object
 type Hotspot struct {
-	ID     int        `json:"id"`
-	Name   string     `json:"name"`
-	Type   string     `json:"type"`
-	Coords [2]float64 `json:"coords"`
+	ID          int        `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Type        string     `json:"type"`
+	Coords      [2]float64 `json:"coords"`
 }
 
 // Category is a category object
