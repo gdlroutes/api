@@ -21,10 +21,12 @@ func New(storage Storage) (UseCases, error) {
 	return &useCases{storage: storage}, nil
 }
 
+// GetCategories retrieves all categories
 func (u *useCases) GetCategories() ([]*models.Category, error) {
 	return u.storage.GetCategories()
 }
 
+// GetCategoryByID retrieves the category with given ID
 func (u *useCases) GetCategoryByID(categoryID int) (*models.Category, error) {
 	if categoryExists, err := u.storage.DoesCategoryExist(categoryID); err != nil {
 		return nil, err

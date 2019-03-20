@@ -15,3 +15,6 @@ main
 # Dependencies
 vendor/
 .vendor-new/
+
+# Environment configuration
+.env
