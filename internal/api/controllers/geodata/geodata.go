@@ -29,6 +29,7 @@ func New(useCases geodata.UseCases) (Controller, error) {
 	return &controller{useCases: useCases}, nil
 }
 
+// GetCategories returns all categories
 func (c *controller) GetCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := c.useCases.GetCategories()
 	if err != nil {
@@ -41,6 +42,7 @@ func (c *controller) GetCategories(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+// GetCategory return a single category
 func (c *controller) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	categoryID, err := strconv.Atoi(vars["id"])
