@@ -26,8 +26,16 @@
 
 
 [[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
+
+[[constraint]]
   name = "github.com/gorilla/mux"
   version = "1.7.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/justinas/alice"
 
 [prune]
   go-tests = true
