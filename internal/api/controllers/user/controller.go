@@ -7,4 +7,5 @@ import "net/http"
 type Controller interface {
 	SignUp(w http.ResponseWriter, r *http.Request)
 	LogIn(w http.ResponseWriter, r *http.Request)
+	LogOut(w http.ResponseWriter, r *http.Request)
 }
