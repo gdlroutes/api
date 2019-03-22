@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gdlroutes/api/internal/api/middleware"
 
@@ -64,7 +65,7 @@ func (c *controller) SignUp(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
-// SignUp returns a session for an existing user
+// LogIn returns a session for an existing user
 func (c *controller) LogIn(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -96,6 +97,19 @@ func (c *controller) LogIn(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
+// LogOut closes a session
+func (c *controller) LogOut(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, ok := ctx.Value(middleware.AccessTokenCookieKey).(string)
+	if !ok {
+		http.Error(w, "No session found", http.StatusForbidden)
+		return
+	}
+
+	cookie := c.buildEmptyCookie()
+	http.SetCookie(w, cookie)
+}
+
 func (c *controller) buildTokenCookie(token *models.Token) *http.Cookie {
 	return &http.Cookie{
 		Domain:  c.cookieDomain,
@@ -107,8 +121,9 @@ func (c *controller) buildTokenCookie(token *models.Token) *http.Cookie {
 
 func (c *controller) buildEmptyCookie() *http.Cookie {
 	return &http.Cookie{
-		Domain: c.cookieDomain,
-		Name:   middleware.AccessTokenCookieName,
-		Value:  "",
+		Domain:  c.cookieDomain,
+		Expires: time.Unix(0, 0),
+		Name:    middleware.AccessTokenCookieName,
+		Value:   "",
 	}
 }

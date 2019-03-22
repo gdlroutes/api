@@ -26,6 +26,9 @@ const (
 	cookieDomainEnvName = "COOKIE_DOMAIN"
 	defaultCookieDomain = "localhost"
 
+	corsOriginEnvName = "CORS_ORIGIN"
+	defaultCORSOrigin = "*"
+
 	tokenDurationEnvName = "TOKEN_DURATION"
 	defaultTokenDuration = "24h"
 
@@ -35,6 +38,7 @@ const (
 
 var (
 	port          string
+	corsOrigin    string
 	cookieDomain  string
 	tokenDuration string
 	tokenKey      string
@@ -44,6 +48,11 @@ func init() {
 	port = os.Getenv(portEnvName)
 	if port == "" {
 		port = defaultPort
+	}
+
+	corsOrigin = os.Getenv(corsOriginEnvName)
+	if corsOrigin == "" {
+		corsOrigin = defaultCORSOrigin
 	}
 
 	cookieDomain = os.Getenv(cookieDomainEnvName)
@@ -56,7 +65,7 @@ func init() {
 		tokenDuration = defaultTokenDuration
 	}
 
-	tokenKey = os.Getenv(tokenDuration)
+	tokenKey = os.Getenv(tokenKeyEnvName)
 	if tokenKey == "" {
 		log.Println("WARNING: using default token-signing key")
 		tokenKey = defaultTokenKey
@@ -109,7 +118,7 @@ func main() {
 	mux.Handle(routers.UserPrefix, userRouter)
 
 	// Chaining middlewares
-	server := alice.New(middleware.CORS, middleware.Token).Then(mux)
+	server := alice.New(middleware.CORS(corsOrigin), middleware.Token()).Then(mux)
 
 	log.Printf("Listening on %s...\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), server))

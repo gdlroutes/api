@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"net/http"
+
+	"github.com/justinas/alice"
 )
 
 type key int
@@ -14,16 +16,19 @@ const (
 	AccessTokenCookieKey = key(0)
 )
 
-// Token is a middleware that extracts the access token cookie and adds it to the context.
+// Token is a function that returns a middleware that extracts the access token cookie and adds it to the context.
 // If the cookie is not present, the value is simply not added.
-func Token(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		cookie, _ := r.Cookie(AccessTokenCookieName)
-		if cookie != nil {
-			ctx = context.WithValue(ctx, AccessTokenCookieKey, cookie.Value)
-		}
+func Token() alice.Constructor {
 
-		h.ServeHTTP(w, r.WithContext(ctx))
-	})
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			cookie, _ := r.Cookie(AccessTokenCookieName)
+			if cookie != nil {
+				ctx = context.WithValue(ctx, AccessTokenCookieKey, cookie.Value)
+			}
+
+			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

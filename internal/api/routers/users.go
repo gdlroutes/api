@@ -26,6 +26,8 @@ func (h *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.router = mux.NewRouter()
 		h.router.HandleFunc(UserPrefix+"login", h.Controller.LogIn).
 			Methods(http.MethodPost)
+		h.router.HandleFunc(UserPrefix+"logout", h.Controller.LogOut).
+			Methods(http.MethodGet)
 		h.router.HandleFunc(UserPrefix+"signup", h.Controller.SignUp).
 			Methods(http.MethodPost)
 	}
