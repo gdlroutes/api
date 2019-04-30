@@ -7,16 +7,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/justinas/alice"
+
+	"github.com/gdlroutes/api/internal/api"
 	geodataController "github.com/gdlroutes/api/internal/api/controllers/geodata"
 	userController "github.com/gdlroutes/api/internal/api/controllers/user"
 	"github.com/gdlroutes/api/internal/api/middleware"
-	"github.com/gdlroutes/api/internal/api/routers"
 	geodataUsecases "github.com/gdlroutes/api/internal/api/usecases/geodata"
 	geodataStorage "github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
 	userUsecases "github.com/gdlroutes/api/internal/api/usecases/user"
 	userStorage "github.com/gdlroutes/api/internal/api/usecases/user/storage"
 	userToken "github.com/gdlroutes/api/internal/api/usecases/user/token"
-	"github.com/justinas/alice"
 )
 
 const (
@@ -87,7 +88,6 @@ func main() {
 	if err != nil {
 		log.Fatal("error creating geodata controller", err)
 	}
-	geodataRouter := &routers.Hotspot{Controller: geodataController}
 
 	// User
 	userStorage, err := userStorage.NewFake()
@@ -110,15 +110,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating user controller: %v", err)
 	}
-	userRouter := &routers.User{Controller: userController}
 
 	// Main router
-	mux := http.NewServeMux()
-	mux.Handle(routers.GeodataPrefix, geodataRouter)
-	mux.Handle(routers.UserPrefix, userRouter)
+	router := &api.Router{
+		GeodataController: geodataController,
+		UserController:    userController,
+	}
 
 	// Chaining middlewares
-	server := alice.New(middleware.CORS(corsOrigin), middleware.Token()).Then(mux)
+	server := alice.New(middleware.CORS(corsOrigin), middleware.Token()).Then(router)
 
 	log.Printf("Listening on %s...\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), server))
