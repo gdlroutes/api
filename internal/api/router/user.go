@@ -1,8 +1,7 @@
-package user
+package router
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,30 +10,9 @@ import (
 	"github.com/gdlroutes/api/internal/api/middleware"
 
 	"github.com/gdlroutes/api/internal/api/models"
-	"github.com/gdlroutes/api/internal/api/usecases/user"
 )
 
-type controller struct {
-	useCases     user.UseCases
-	cookieDomain string
-}
-
-var _ Controller = &controller{}
-
-// New returns a new, initialized, hotsgeodatapot controller
-func New(useCases user.UseCases, cookieDomain string) (Controller, error) {
-	if useCases == nil {
-		return nil, errors.New("nil useCases")
-	}
-
-	return &controller{
-		useCases:     useCases,
-		cookieDomain: cookieDomain,
-	}, nil
-}
-
-// SignUp creates a new user and returns a session for newly created user
-func (c *controller) SignUp(w http.ResponseWriter, r *http.Request) {
+func (h *Router) signUp(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Error in /signup:", err)
@@ -48,7 +26,7 @@ func (c *controller) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := c.useCases.CreateUserAndToken(user)
+	token, err := h.UserUseCases.CreateUserAndToken(user)
 	switch err.(type) {
 	case nil:
 		break
@@ -61,12 +39,11 @@ func (c *controller) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := c.buildTokenCookie(token)
+	cookie := h.buildTokenCookie(token)
 	http.SetCookie(w, cookie)
 }
 
-// LogIn returns a session for an existing user
-func (c *controller) LogIn(w http.ResponseWriter, r *http.Request) {
+func (h *Router) logIn(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Error in /login:", err)
@@ -80,7 +57,7 @@ func (c *controller) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := c.useCases.CreateToken(user)
+	token, err := h.UserUseCases.CreateToken(user)
 	switch err.(type) {
 	case nil:
 		break
@@ -93,12 +70,11 @@ func (c *controller) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := c.buildTokenCookie(token)
+	cookie := h.buildTokenCookie(token)
 	http.SetCookie(w, cookie)
 }
 
-// LogOut closes a session
-func (c *controller) LogOut(w http.ResponseWriter, r *http.Request) {
+func (h *Router) logOut(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := ctx.Value(middleware.AccessTokenCookieKey).(string)
 	if !ok {
@@ -106,22 +82,22 @@ func (c *controller) LogOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := c.buildEmptyCookie()
+	cookie := h.buildEmptyCookie()
 	http.SetCookie(w, cookie)
 }
 
-func (c *controller) buildTokenCookie(token *models.Token) *http.Cookie {
+func (h *Router) buildTokenCookie(token *models.Token) *http.Cookie {
 	return &http.Cookie{
-		Domain:  c.cookieDomain,
+		Domain:  h.CookieDomain,
 		Expires: token.Expires,
 		Name:    middleware.AccessTokenCookieName,
 		Value:   token.Token,
 	}
 }
 
-func (c *controller) buildEmptyCookie() *http.Cookie {
+func (h *Router) buildEmptyCookie() *http.Cookie {
 	return &http.Cookie{
-		Domain:  c.cookieDomain,
+		Domain:  h.CookieDomain,
 		Expires: time.Unix(0, 0),
 		Name:    middleware.AccessTokenCookieName,
 		Value:   "",

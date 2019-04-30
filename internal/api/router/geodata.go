@@ -1,8 +1,7 @@
-package geodata
+package router
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,27 +10,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/gdlroutes/api/internal/api/models"
-	"github.com/gdlroutes/api/internal/api/usecases/geodata"
 )
 
-type controller struct {
-	useCases geodata.UseCases
-}
-
-var _ Controller = &controller{}
-
-// New returns a new, initialized, hotspot controller
-func New(useCases geodata.UseCases) (Controller, error) {
-	if useCases == nil {
-		return nil, errors.New("nil useCases")
-	}
-
-	return &controller{useCases: useCases}, nil
-}
-
-// GetCategories returns all categories
-func (c *controller) GetCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := c.useCases.GetCategories()
+func (h *Router) getCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := h.GeodataUseCases.GetCategories()
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -42,8 +24,7 @@ func (c *controller) GetCategories(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
-// GetCategory return a single category
-func (c *controller) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
+func (h *Router) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	categoryID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -51,7 +32,7 @@ func (c *controller) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := c.useCases.GetCategoryByID(categoryID)
+	category, err := h.GeodataUseCases.GetCategoryByID(categoryID)
 	switch err.(type) {
 	case nil:
 		break

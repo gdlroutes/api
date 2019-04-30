@@ -9,10 +9,8 @@ import (
 
 	"github.com/justinas/alice"
 
-	"github.com/gdlroutes/api/internal/api"
-	geodataController "github.com/gdlroutes/api/internal/api/controllers/geodata"
-	userController "github.com/gdlroutes/api/internal/api/controllers/user"
 	"github.com/gdlroutes/api/internal/api/middleware"
+	"github.com/gdlroutes/api/internal/api/router"
 	geodataUsecases "github.com/gdlroutes/api/internal/api/usecases/geodata"
 	geodataStorage "github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
 	userUsecases "github.com/gdlroutes/api/internal/api/usecases/user"
@@ -84,10 +82,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating geodata usecases: %v", err)
 	}
-	geodataController, err := geodataController.New(geodataUseCases)
-	if err != nil {
-		log.Fatal("error creating geodata controller", err)
-	}
 
 	// User
 	userStorage, err := userStorage.NewFake()
@@ -106,15 +100,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating user usecases: %v", err)
 	}
-	userController, err := userController.New(userUseCases, cookieDomain)
-	if err != nil {
-		log.Fatalf("error creating user controller: %v", err)
-	}
 
 	// Main router
-	router := &api.Router{
-		GeodataController: geodataController,
-		UserController:    userController,
+	router := &router.Router{
+		GeodataUseCases: geodataUseCases,
+		UserUseCases:    userUseCases,
+		CookieDomain:    cookieDomain,
 	}
 
 	// Chaining middlewares
