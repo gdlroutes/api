@@ -36,3 +36,24 @@ func (u *useCases) GetCategoryByID(categoryID int) (*models.Category, error) {
 
 	return u.storage.GetCategoryByID(categoryID)
 }
+
+// CreateRoute creates a new route
+func (u *useCases) CreateRoute(route *models.Route) error {
+	if categoryExists, err := u.storage.DoesCategoryExist(route.CategoryID); err != nil {
+		return err
+	} else if !categoryExists {
+		return models.NotFoundError("")
+	}
+
+	return u.storage.CreateRoute(route)
+}
+
+// GetRoutes fetches all routes
+func (u *useCases) GetRoutes() ([]*models.Route, error) {
+	return u.storage.GetAllRoutes()
+}
+
+// GetRoutesByCategory fetches all routes that match a given category
+func (u *useCases) GetRoutesByCategory(categoryID int) ([]*models.Route, error) {
+	return u.storage.GetRoutesByCategory(categoryID)
+}

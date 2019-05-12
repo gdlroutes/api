@@ -2,13 +2,17 @@ package storage
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gdlroutes/api/internal/api/models"
 	"github.com/gdlroutes/api/internal/api/usecases/geodata"
 )
 
 type fakeStorage struct {
-	categories map[int]*models.Category
+	categories     map[int]*models.Category
+	routes         map[int][]*models.Route
+	lastRouteID    int
+	categoriesLock sync.RWMutex
 }
 
 var _ geodata.Storage = &fakeStorage{}
@@ -88,6 +92,25 @@ func NewFake() (geodata.Storage, error) {
 				},
 			},
 		},
+		routes: map[int][]*models.Route{
+			1: []*models.Route{
+				&models.Route{
+					ID: 1,
+				},
+				&models.Route{
+					ID: 2,
+				},
+			},
+			2: []*models.Route{
+				&models.Route{
+					ID: 3,
+				},
+				&models.Route{
+					ID: 4,
+				},
+			},
+		},
+		lastRouteID: 4,
 	}, nil
 }
 
@@ -112,4 +135,32 @@ func (s *fakeStorage) GetCategoryByID(categoryID int) (*models.Category, error) 
 	}
 
 	return category, nil
+}
+
+func (s *fakeStorage) CreateRoute(route *models.Route) error {
+	s.categoriesLock.Lock()
+	s.lastRouteID++
+	route.ID = s.lastRouteID
+	s.routes[route.CategoryID] = append(s.routes[route.CategoryID], route)
+	s.categoriesLock.Unlock()
+
+	return nil
+}
+
+func (s *fakeStorage) GetAllRoutes() ([]*models.Route, error) {
+	routes := make([]*models.Route, 0)
+	for _, r := range s.routes {
+		routes = append(routes, r...)
+	}
+
+	return routes, nil
+}
+
+func (s *fakeStorage) GetRoutesByCategory(categoryID int) ([]*models.Route, error) {
+	routes, ok := s.routes[categoryID]
+	if !ok {
+		return []*models.Route{}, nil
+	}
+
+	return routes, nil
 }

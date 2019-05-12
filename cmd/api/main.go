@@ -109,7 +109,7 @@ func main() {
 	}
 
 	// Chaining middlewares
-	server := alice.New(middleware.CORS(corsOrigin), middleware.Token()).Then(router)
+	server := alice.New(middleware.RequestLogger(), middleware.CORS(corsOrigin), middleware.Token()).Then(router)
 
 	log.Printf("Listening on %s...\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), server))
