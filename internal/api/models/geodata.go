@@ -16,3 +16,12 @@ type Category struct {
 	Active   bool       `json:"active"`
 	Hotspots []*Hotspot `json:"features"`
 }
+
+// Route is a route object
+type Route struct {
+	ID          int          `json:"id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	CategoryID  int          `json:"category_id"`
+	Points      [][2]float64 `json:"points"`
+}

@@ -92,6 +92,7 @@ func (h *Router) buildTokenCookie(token *models.Token) *http.Cookie {
 		Expires: token.Expires,
 		Name:    middleware.AccessTokenCookieName,
 		Value:   token.Token,
+		Path:    "/",
 	}
 }
 
@@ -101,5 +102,6 @@ func (h *Router) buildEmptyCookie() *http.Cookie {
 		Expires: time.Unix(0, 0),
 		Name:    middleware.AccessTokenCookieName,
 		Value:   "",
+		Path:    "/",
 	}
 }
