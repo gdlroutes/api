@@ -37,6 +37,10 @@
   branch = "master"
   name = "github.com/justinas/alice"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/lib/pq"
+
 [prune]
   go-tests = true
   unused-packages = true
