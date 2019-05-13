@@ -1,20 +1,23 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/justinas/alice"
+	_ "github.com/lib/pq" // Postgres driver
 
 	"github.com/gdlroutes/api/internal/api/middleware"
 	"github.com/gdlroutes/api/internal/api/router"
-	geodataUsecases "github.com/gdlroutes/api/internal/api/usecases/geodata"
-	geodataStorage "github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
-	userUsecases "github.com/gdlroutes/api/internal/api/usecases/user"
-	userStorage "github.com/gdlroutes/api/internal/api/usecases/user/storage"
+	"github.com/gdlroutes/api/internal/api/usecases/geodata"
+	geodatastg "github.com/gdlroutes/api/internal/api/usecases/geodata/storage"
+	"github.com/gdlroutes/api/internal/api/usecases/user"
+	userstg "github.com/gdlroutes/api/internal/api/usecases/user/storage"
 	userToken "github.com/gdlroutes/api/internal/api/usecases/user/token"
 )
 
@@ -33,6 +36,25 @@ const (
 
 	tokenKeyEnvName = "TOKEN_KEY"
 	defaultTokenKey = "1ns3cur3"
+
+	fakeDatabaseEnvName = "FAKE_DB"
+
+	databaseHostEnvName = "DB_HOST"
+	defaultDatabaseHost = "127.0.0.1"
+
+	databasePortEnvName = "DB_PORT"
+	defaultDatabasePort = "5432"
+
+	databaseDBEnvName = "DB_DATABASE"
+	defaultDatabaseDB = "gdlroutes"
+
+	databaseUserEnvName = "DB_USER"
+	defaultDatabaseUser = "postgres"
+
+	databasePasswordEnvName = "DB_PASSWORd"
+	defaultDatabasePassword = "postgres"
+
+	databaseURLEnvName = "DATABASE_URL"
 )
 
 var (
@@ -41,6 +63,9 @@ var (
 	cookieDomain  string
 	tokenDuration string
 	tokenKey      string
+	databaseURL   string
+	fakeDatabase  bool
+	db            *sql.DB
 )
 
 func init() {
@@ -69,24 +94,94 @@ func init() {
 		log.Println("WARNING: using default token-signing key")
 		tokenKey = defaultTokenKey
 	}
+
+	if os.Getenv(fakeDatabaseEnvName) != "" {
+		fakeDatabase = true
+		return
+	}
+
+	databaseURL = os.Getenv(databaseURLEnvName)
+	if databaseURL == "" {
+		host := os.Getenv(databaseHostEnvName)
+		if host == "" {
+			host = defaultDatabaseHost
+		}
+		port := os.Getenv(databasePortEnvName)
+		if port == "" {
+			port = defaultDatabasePort
+		}
+		db := os.Getenv(databaseDBEnvName)
+		if db == "" {
+			db = defaultDatabaseDB
+		}
+		user := os.Getenv(databaseUserEnvName)
+		if user == "" {
+			user = defaultDatabaseUser
+		}
+		password := os.Getenv(databasePasswordEnvName)
+		if password == "" {
+			password = defaultDatabasePassword
+		}
+		ssl := url.Values{}
+		ssl.Set("sslmode", "disable")
+
+		dsn := url.URL{
+			Scheme:   "postgres",
+			User:     url.UserPassword(user, password),
+			Host:     fmt.Sprintf("%s:%s", host, port),
+			Path:     db,
+			RawQuery: ssl.Encode(),
+		}
+		databaseURL = dsn.String()
+	}
+
+	var err error
+	db, err = sql.Open("postgres", databaseURL)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create postgres database driver: %v", err))
+
+	}
+
+	if err = db.Ping(); err != nil {
+		panic(fmt.Sprintf("unable to connect: %v", err))
+	}
 }
 
 func main() {
+	var (
+		geodataStorage geodata.Storage
+		userStorage    user.Storage
+		err            error
+	)
 
 	// Geodata
-	geodataStorage, err := geodataStorage.NewFake()
-	if err != nil {
-		log.Fatalf("error creating geodata storage: %v", err)
+	if fakeDatabase {
+		geodataStorage, err = geodatastg.NewFake()
+		if err != nil {
+			log.Fatalf("error creating fake geodata storage: %v", err)
+		}
+	} else {
+		geodataStorage, err = geodatastg.NewPostgres(db)
+		if err != nil {
+			log.Fatalf("error creating Postgres geodata storage: %v", err)
+		}
 	}
-	geodataUseCases, err := geodataUsecases.New(geodataStorage)
+	geodataUseCases, err := geodata.New(geodataStorage)
 	if err != nil {
 		log.Fatalf("error creating geodata usecases: %v", err)
 	}
 
 	// User
-	userStorage, err := userStorage.NewFake()
-	if err != nil {
-		log.Fatalf("error creating user storage: %v", err)
+	if fakeDatabase {
+		userStorage, err = userstg.NewFake()
+		if err != nil {
+			log.Fatalf("error creating fake user storage: %v", err)
+		}
+	} else {
+		userStorage, err = userstg.NewPostgres(db)
+		if err != nil {
+			log.Fatalf("error creating Postgres user storage: %v", err)
+		}
 	}
 	duration, err := time.ParseDuration(tokenDuration)
 	if err != nil {
@@ -96,7 +191,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating user token generator: %v", err)
 	}
-	userUseCases, err := userUsecases.New(userStorage, userTokenGenerator)
+	userUseCases, err := user.New(userStorage, userTokenGenerator)
 	if err != nil {
 		log.Fatalf("error creating user usecases: %v", err)
 	}
