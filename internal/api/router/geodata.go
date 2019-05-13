@@ -75,6 +75,7 @@ func (h *Router) createRoute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.GeodataUseCases.CreateRoute(route); err != nil {
+		log.Println("Error in POST /routes:", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
