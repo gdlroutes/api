@@ -248,7 +248,7 @@ func (s *postgresStorage) GetRoutesByCategory(categoryID int) ([]*models.Route, 
 	const query = `
 	SELECT id, name, description, category_id
 	FROM routes
-	WHERE categories_id = $1;
+	WHERE category_id = $1;
 	`
 	rows, err := s.db.Query(query, categoryID)
 	if err != nil {
