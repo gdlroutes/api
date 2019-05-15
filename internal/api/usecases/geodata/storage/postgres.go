@@ -247,7 +247,7 @@ func (s *postgresStorage) GetAllRoutes() ([]*models.Route, error) {
 func (s *postgresStorage) GetRoutesByCategory(categoryID int) ([]*models.Route, error) {
 	const query = `
 	SELECT id, name, description, category_id
-	FROM routes;
+	FROM routes
 	WHERE categories_id = $1;
 	`
 	rows, err := s.db.Query(query, categoryID)
