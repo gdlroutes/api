@@ -137,6 +137,10 @@ func (s *fakeStorage) GetCategoryByID(categoryID int) (*models.Category, error) 
 	return category, nil
 }
 
+func (s *fakeStorage) GetRouteCategories() ([]*models.RouteCategory, error) {
+	return nil, nil
+}
+
 func (s *fakeStorage) CreateRoute(route *models.Route) error {
 	s.categoriesLock.Lock()
 	s.lastRouteID++

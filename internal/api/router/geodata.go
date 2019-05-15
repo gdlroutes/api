@@ -53,6 +53,19 @@ func (h *Router) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+func (h *Router) getRouteCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := h.GeodataUseCases.GetRouteCategories()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	bytes, _ := json.Marshal(categories)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
+}
+
 func (h *Router) createRoute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := ctx.Value(middleware.AccessTokenCookieKey).(string)
