@@ -216,10 +216,8 @@ func (s *postgresStorage) getRoutePoints(routeID int) ([][2]float64, error) {
 
 func (s *postgresStorage) GetAllRoutes() ([]*models.Route, error) {
 	const query = `
-	SELECT routes.id, routes.name, routes.description, categories.id
-	FROM routes
-	JOIN categories
-	ON routes.category_id = categories.id
+	SELECT id, name, description, category_id
+	FROM routes;
 	`
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -248,11 +246,9 @@ func (s *postgresStorage) GetAllRoutes() ([]*models.Route, error) {
 
 func (s *postgresStorage) GetRoutesByCategory(categoryID int) ([]*models.Route, error) {
 	const query = `
-	SELECT routes.id, routes.name, routes.description, categories.id
-	FROM routes
-	JOIN categories
-	ON routes.category_id = categories.id
-	WHERE categories.id = $1;
+	SELECT id, name, description, category_id
+	FROM routes;
+	WHERE categories_id = $1;
 	`
 	rows, err := s.db.Query(query, categoryID)
 	if err != nil {
