@@ -32,6 +32,8 @@ func (h *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Methods(http.MethodGet)
 		h.router.HandleFunc(geodataPrefix+"categories", h.getCategories).
 			Methods(http.MethodGet)
+		h.router.HandleFunc(geodataPrefix+"routeCategories", h.getRouteCategories).
+			Methods(http.MethodGet)
 		h.router.HandleFunc(geodataPrefix+"routes", h.createRoute).
 			Methods(http.MethodPost)
 		h.router.HandleFunc(geodataPrefix+"routes", h.getRoutesByCategory).

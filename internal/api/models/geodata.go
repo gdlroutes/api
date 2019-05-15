@@ -25,3 +25,9 @@ type Route struct {
 	CategoryID  int          `json:"category_id"`
 	Points      [][2]float64 `json:"points"`
 }
+
+// RouteCategory is a category for routes
+type RouteCategory struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

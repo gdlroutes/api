@@ -126,6 +126,29 @@ func (s *postgresStorage) GetCategoryByID(categoryID int) (*models.Category, err
 	return category, nil
 }
 
+func (s *postgresStorage) GetRouteCategories() ([]*models.RouteCategory, error) {
+	const query = `
+	SELECT id, name
+	FROM route_categories;
+	`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	categories := make([]*models.RouteCategory, 0)
+	for rows.Next() {
+		category := &models.RouteCategory{}
+		if err := rows.Scan(&category.ID, &category.Name); err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	return categories, nil
+}
+
 func createRoutePoints(tx *sql.Tx, routeID int, points [][2]float64) error {
 	const query = `
 	INSERT INTO route_points(route_id, latitude, longitude)
